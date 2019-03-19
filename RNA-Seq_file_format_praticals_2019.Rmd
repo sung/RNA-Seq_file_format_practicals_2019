@@ -12,8 +12,8 @@ institute: |
   | Department of Obstetrics & Gynaecology
   | University of Cambridge
 output: 
-  #html_document:
-  html_notebook:
+  html_document:
+  #html_notebook:
     highlight: pygments
     toc_float: true
     toc: true
@@ -33,9 +33,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-> "check the [github page](https://github.com/sung/RNA-Seq_file_format_praticals_2019) for this document"
-
-------
+## Before you start
+1. Check the [github page](https://github.com/sung/RNA-Seq_file_format_praticals_2019) for this document.
+2. If you would like to follow this practical from your own machine, you may need to install some of the software tools (follow relevant links) or linux commands.
+3. If 2 is true, you may also need to set up your [$PATH environment variable](https://www.cyberciti.biz/faq/unix-linux-adding-path/){target="_blank"}
 
 ## Aims
 1. To prepare other classes ahead
@@ -153,7 +154,7 @@ knitr::include_url("./SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1_fastqc.html")
 ```{r, echo=F}
 knitr::include_url("http://science.sciencemag.org/content/360/6393/1133")
 ```
-- Downlaod the first 1K spots from the smallest RNA-Seq fastq files [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"}
+- Downlaod the first 1K spots from the smallest RNA-Seq fastq files from [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"} (you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"})
 
 ```{r, echo=F}
 knitr::include_url("https://www.ncbi.nlm.nih.gov/sra/?term=SRP130149")
@@ -205,15 +206,16 @@ zcat Homo_sapiens.GRCh38.95.gtf.gz | awk '$3=="gene"{GENE++}$3=="transcript"{TRA
 zcat Homo_sapiens.GRCh38.95.gtf.gz | awk '!/^#/{print $3}' | sort | uniq -c | sort -k1,1n
 ```
 
-- Read the first 10 lines using Bioconductor [rtracklayer package](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html){target="_blank"}
+- Read the first 10 lines (excluding comments (i.e. '#')) using Bioconductor [rtracklayer package](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html){target="_blank"}
 ```{r}
-# start your R session using 'R' command
+# start your R session using 'R' command from the terminal
 rtracklayer::import(format="gtf", text=system("zcat Homo_sapiens.GRCh38.95.gtf.gz | grep -v ^# | head -n 10", intern=T))
 ```
 
 - Another task: read the LEP ([Leptin](https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000174697;r=7:128241284-128257628;t=ENST00000308868){target="_blank"}) transcript
 ```{r}
-# start your R session using 'R' command
+# start your R session using 'R' command from the terminal
+# 
 rtracklayer::import(format="gtf", text=system("zcat Homo_sapiens.GRCh38.95.gtf.gz | grep -P 'gene_name \"LEP\"' ", intern=T))
 ```
 
@@ -231,6 +233,7 @@ foo<-rtracklayer::import("Homo_sapiens.GRCh38.95.gtf.gz")
 
 - Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"}
 ```{r, engine='bash'}
+# you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"}
 sam-dump SRR6481086 | head -n 10
 ```
 
@@ -240,9 +243,11 @@ sam-dump SRR6481086 | head -n 10
 sam-dump SRR6481086 | awk '{print $3}' | sort | uniq -c
 ```
 
-- So, 1K reads of SRR6481086 were aligned to GRCh38 using [HiSat2](https://ccb.jhu.edu/software/hisat2/){target="_blank"}
+- So, 1K reads of SRR6481086 were aligned to GRCh38 using [HiSat2](https://ccb.jhu.edu/software/hisat2/){target="_blank"} (you are **NOT** expected to run this command)
 
 ```{r, engine='bash', eval=F}
+# this is for your information only
+# the path to the index should be changed (but I am not covering this)
 hisat2 -x /home/ssg29/data/genome/Homo_sapiens/Ensembl/GRCh38/Sequence/HiSat2Index/genome --add-chrname --rg-id SRR6481086 --rg SRR6481086 -1 SRR6481086_pass_1.fastq.gz -2 SRR6481086_pass_2.fastq.gz | samtools view -bS - > SRR6481086.bam
 ```
 
@@ -251,8 +256,10 @@ hisat2 -x /home/ssg29/data/genome/Homo_sapiens/Ensembl/GRCh38/Sequence/HiSat2Ind
 wget https://www.dropbox.com/s/6ouvliibmwhnbet/SRR6481086.bam
 ```
 
-- Let's see the header of the BAM file
+- Let's see the header of the BAM file using [samtools](http://www.htslib.org/){target="_blank"}
 ```{r, engine='bash'}
+# I assume samtools already installed 
+# and the binary is avaialble from your $PATH environment
 samtools view -H SRR6481086.bam
 ```
 
@@ -311,10 +318,11 @@ samtools view -f 1 -F 12 -c SRR6481086.bam
 
 ### BED
 - https://genome.ucsc.edu/FAQ/FAQformat#format1
-- BAM to BED (using bedtools)
+- Convert BAM format to BED format (using [bedtools](https://bedtools.readthedocs.io/){target="_blank"})
 ```{r, engine='bash'}
+# I assume bedtools is exported to your $PATH
 bedtools bamtobed -i SRR6481086.bam | head
-# this is equivalent with the follwoing
+# this is equivalent with the follwoing command
 bamToBed -i SRR6481086.bam | head
 ```
 
