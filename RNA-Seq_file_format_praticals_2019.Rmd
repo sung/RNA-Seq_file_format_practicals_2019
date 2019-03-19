@@ -12,8 +12,8 @@ institute: |
   | Department of Obstetrics & Gynaecology
   | University of Cambridge
 output: 
-  #html_document:
-  html_notebook:
+  html_document:
+  #html_notebook:
     highlight: pygments
     toc_float: true
     toc: true
