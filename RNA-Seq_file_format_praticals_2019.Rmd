@@ -1,0 +1,344 @@
+---
+title: "RNA-Seq File Format Practicals"
+subtitle: "A primer to the different types of RNA-Seq data files"
+author: |
+  | [Sungsam Gong](https://www.obgyn.cam.ac.uk/staff/research-staff/sung-gong/){target="_blank"}
+  | Senior Research Associate
+  | Department of Obstetrics & Gynaecology
+  | University of Cambridge
+date: "26 March 2019"
+institute: |
+  | Senior Research Associate
+  | Department of Obstetrics & Gynaecology
+  | University of Cambridge
+output: 
+  #html_document:
+  html_notebook:
+    highlight: pygments
+    toc_float: true
+    toc: true
+    toc_depth: 3
+    #number_section: true
+  #prettydoc::html_pretty:
+    #theme: leonids
+    #highlight: github
+  #uslides::uslides_pdf:
+  #beamer_presentation:
+    #slide_level: 2
+    #theme: "AnnArbor"
+    #theme: "PaloAlto"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Aims
+1. To prepare other classes ahead
+2. To gain confidence
+ - of processing RNA-Seq data files
+ - or linux (or unix) command lines
+
+## You will learn
+1. Various file formats
+ - [FASTA](https://en.wikipedia.org/wiki/FASTA_format){target="_blank"} and [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format){target="_blank"}
+ - [GTF](https://en.wikipedia.org/wiki/Gene_transfer_format){target="_blank"} and or [GFF](https://en.wikipedia.org/wiki/General_feature_format){target="_blank"}
+ - [SAM](https://en.wikipedia.org/wiki/SAM_(file_format)){target="_blank"} and [BAM](https://en.wikipedia.org/wiki/Binary_Alignment_Map){target="_blank"}
+ - [BED](https://genome.ucsc.edu/FAQ/FAQformat.html#format1){target="_blank"}
+2. Accessing public or published data 
+ - [Ensembl](http://www.ensembl.org){target="_blank"}
+ - [NCBI SRA](https://www.ncbi.nlm.nih.gov/sra){target="_blank"}
+3. And related linux commands and software tools
+ - [awk](https://en.wikipedia.org/wiki/AWK){target="_blank"}
+ - [sort](http://man7.org/linux/man-pages/man1/sort.1.html){target="_blank"}
+ - [zcat](https://linux.die.net/man/1/zcat){target="_blank"} or [zless](https://linux.die.net/man/1/zless){target="_blank"}
+ - [samtools](http://www.htslib.org/){target="_blank"}
+ - [bedtools](https://bedtools.readthedocs.io/){target="_blank"}
+ - [sra toolkits](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"}
+
+## You will **NOT** learn (from me)
+1. Various RNA-Seq data processing and analysis, such as
+  + Quality controls of sequenced reads
+  + Adaptor (and/or poor quality read) trimming
+  + Alignment (mapping) of reads
+  + Quantification of transcript-level (or gene-level) abundance
+  + Differentially expressed gene/transcript/exon analysis
+  * Transcriptome reconstruction (or assembly)
+
+2. Detailed use of software tools related with above
+ * [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/){target="_blank"}
+ * [cutadapt](https://cutadapt.readthedocs.io/en/stable/index.html){target="_blank"}
+ * [TopHat2](https://ccb.jhu.edu/software/tophat/index.shtml){target="_blank"} and [HiSat2](https://ccb.jhu.edu/software/hisat2/){target="_blank"}
+ * [featureCounts](http://subread.sourceforge.net/){target="_blank"}, [Salmon](https://combine-lab.github.io/salmon/){target="_blank"} [Kallisto](https://pachterlab.github.io/kallisto/){target="_blank"}
+ * [DESeq2](https://bioconductor.org/packages/release/bioc/html/DESeq2.html){target="_blank"}, [DEXSeq](https://bioconductor.org/packages/release/bioc/html/DEXSeq.html){target="_blank"}, and [edgeR](https://bioconductor.org/packages/release/bioc/html/edgeR.html){target="_blank"}
+ * [StringTie](https://ccb.jhu.edu/software/stringtie/){target="_blank"} and [TACO](https://tacorna.github.io/){target="_blank"}
+
+## File Formats {.tabset}
+https://genome.ucsc.edu/FAQ/FAQformat
+
+### FASTA
+- https://en.wikipedia.org/wiki/FASTA_format
+- The letters should follow the [IUPAC codes](https://en.wikipedia.org/wiki/FASTA_format#Sequence_representation){target="_blank"}
+- Task 1: download the FASTA file of human chr22 (from [here](https://www.ensembl.org/info/data/ftp/index.html){target="_blank"}) and calculate the size (i.e. length) of the chromosome  
+
+```{r, echo=F}
+knitr::include_url("https://www.ensembl.org/info/data/ftp/index.html")
+```
+
+<!--```{r, engine='bash', results=F}-->
+```{r, engine='bash', eval=F}
+wget ftp://ftp.ensembl.org/pub/release-95/fasta/homo_sapiens/dna/Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz
+```
+
+```{r, engine='bash'}
+zless Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz | head -n5
+```
+
+```{r, engine='bash'}
+zcat Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz | awk '!/^>/{LEN+=length($0)}END{print LEN}' 
+```
+
+- Task 2: get the sequence from [40000001 to 40000300 of chr22](http://www.ensembl.org/Homo_sapiens/Location/View?r=22%3A40000001-40000300){target="_blank"}
+```{r, engine='bash'}
+zcat Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz | awk 'BEGIN{min=50818468;max=0;start=40000001;end=40000300}!/^>/{LEN+=length($0); if(LEN>=start && LEN-length($0)+1<=end){min=(min>LEN-length($0)+1)?LEN-length($0)+1:min; max=(max>LEN)?max:LEN; SEQ=SEQ$0; print LEN-length($0)+1,LEN,$0,length($0)} }END{print substr(SEQ,start-min+1,end-start+1)}'
+```
+
+- Compare the result above and the following method (using [the ensembl rest api](https://rest.ensembl.org/documentation/info/sequence_region)){target="_blank"}
+```{r, engine='bash'}
+curl https://rest.ensembl.org/sequence/region/human/22:40000001..40000300:1?content-type=text/plain
+```
+
+- Task 3: what is the sequence of 40000001 to 40000100 of **chr21** (using both awk and curl)?
+```{r, engine='bash'}
+curl https://rest.ensembl.org/sequence/region/human/21:40000001..40000100:1?content-type=text/plain
+```
+
+### FASTQ
+- https://en.wikipedia.org/wiki/FASTQ_format
+- Examples from [Gong *et al.* JCI-I 2018](https://insight.jci.org/articles/view/120723){target="_blank"}
+- Download one of down-sampled (to 1K) FASTQ available from below
+```{r, engine='bash', eval=F}
+wget https://www.dropbox.com/s/h2lzzn94o9zpv26/SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz
+```
+- Question: how many entries (it's abvious)
+```{r, engine='bash'}
+zcat  SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | echo $((`wc -l`/4))
+```
+
+- Let's look at the first entry (i.e. the first 4 lines) and check the meta information
+```{r, engine='bash'}
+zcat SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n4
+```
+
+- Question: sequencing lenth?
+```{r, engine='bash'}
+zless SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n 4 | awk 'NR%4==2{print length($0)}'
+```
+ 
+- Check the base quality using [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/){target="_blank"}
+```{r, engine='bash', eval=F}
+fastqc SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz
+```
+
+```{r, echo=F}
+knitr::include_url("./SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1_fastqc.html")
+```
+
+
+- Another example [Ngo _et al._ Science 2018](http://science.sciencemag.org/content/360/6393/1133){target="_blank"} ([SPR130149](https://www.ncbi.nlm.nih.gov/sra/?term=SRP130149){target="_blank"})
+```{r, echo=F}
+knitr::include_url("http://science.sciencemag.org/content/360/6393/1133")
+```
+- Downlaod the first 1K spots from the smallest RNA-Seq fastq files [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"}
+
+```{r, echo=F}
+knitr::include_url("https://www.ncbi.nlm.nih.gov/sra/?term=SRP130149")
+```
+
+```{r, engine='bash', eval=F}
+fastq-dump -X 1000 --split-files --read-filter pass --outdir ./ --gzip SRR6481086 
+```
+```{r, engine='bash'}
+zcat SRR6481086_pass_1.fastq.gz | echo $((`wc -l`/4))
+zcat SRR6481086_pass_2.fastq.gz | echo $((`wc -l`/4))
+```
+
+- Let's look at the fist 8 lines
+```{r, engine='bash'}
+zcat SRR6481086_pass_1.fastq.gz | head -n8
+```
+```{r, engine='bash'}
+zcat SRR6481086_pass_2.fastq.gz | head -n8
+```
+
+- Check the base quality using [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/){target="_blank"}
+```{r, engine='bash', eval=F}
+fastqc SRR6481086_pass_1.fastq.gz SRR6481086_pass_2.fastq.gz
+```
+
+```{r, echo=F}
+knitr::include_url("./SRR6481086_pass_1_fastqc.html", height="600px")
+```
+
+```{r, echo=F}
+knitr::include_url("./SRR6481086_pass_2_fastqc.html", height="600px")
+```
+
+### GTF (GFF)
+- https://genome.ucsc.edu/FAQ/FAQformat#format3
+- https://www.ensembl.org/info/website/upload/gff.html
+- Let's download the Ensembl transcript annotation file
+```{r, engine='bash', eval=F}
+wget ftp://ftp.ensembl.org/pub/release-95/gtf/homo_sapiens/Homo_sapiens.GRCh38.95.gtf.gz
+```
+
+- How many genes and transcripts?
+```{bash}
+zcat Homo_sapiens.GRCh38.95.gtf.gz | awk '$3=="gene"{GENE++}$3=="transcript"{TRANS++}$3=="exon"{EXON++}END{print GENE,TRANS,EXON}'
+```
+- What else in the file?
+```{bash}
+zcat Homo_sapiens.GRCh38.95.gtf.gz | awk '!/^#/{print $3}' | sort | uniq -c | sort -k1,1n
+```
+
+- Read the first 10 lines using Bioconductor [rtracklayer package](http://bioconductor.org/packages/release/bioc/html/rtracklayer.html){target="_blank"}
+```{r}
+# start your R session using 'R' command
+rtracklayer::import(format="gtf", text=system("zcat Homo_sapiens.GRCh38.95.gtf.gz | grep -v ^# | head -n 10", intern=T))
+```
+
+- Another task: read the LEP ([Leptin](https://www.ensembl.org/Homo_sapiens/Gene/Summary?db=core;g=ENSG00000174697;r=7:128241284-128257628;t=ENST00000308868){target="_blank"}) transcript
+```{r}
+# start your R session using 'R' command
+rtracklayer::import(format="gtf", text=system("zcat Homo_sapiens.GRCh38.95.gtf.gz | grep -P 'gene_name \"LEP\"' ", intern=T))
+```
+
+- You can, of course, read all of them them
+```{r, eval=F}
+# IT WILL TAKE LONG
+foo<-rtracklayer::import("Homo_sapiens.GRCh38.95.gtf.gz")
+```
+
+### SAM (BAM)
+- http://samtools.github.io/hts-specs/SAMv1.pdf 
+- http://www.htslib.org/doc/samtools.html
+- http://www.htslib.org/doc/sam.html
+- You can check your bitwise FLAG interactively from [here](https://broadinstitute.github.io/picard/explain-flags.html){target="_blank"}
+
+- Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"}
+```{r, engine='bash'}
+sam-dump SRR6481086 | head -n 10
+```
+
+- However, they truned out to be unaligned
+```{r, engine='bash', eval=F}
+# DO NOT RUN (takes a while)
+sam-dump SRR6481086 | awk '{print $3}' | sort | uniq -c
+```
+
+- So, 1K reads of SRR6481086 were aligned to GRCh38 using [HiSat2](https://ccb.jhu.edu/software/hisat2/){target="_blank"}
+
+```{r, engine='bash', eval=F}
+hisat2 -x /home/ssg29/data/genome/Homo_sapiens/Ensembl/GRCh38/Sequence/HiSat2Index/genome --add-chrname --rg-id SRR6481086 --rg SRR6481086 -1 SRR6481086_pass_1.fastq.gz -2 SRR6481086_pass_2.fastq.gz | samtools view -bS - > SRR6481086.bam
+```
+
+- The BAM file is avaiable:
+```{r, engine='bash', eval=F}
+wget https://www.dropbox.com/s/6ouvliibmwhnbet/SRR6481086.bam
+```
+
+- Let's see the header of the BAM file
+```{r, engine='bash'}
+samtools view -H SRR6481086.bam
+```
+
+- Run samtools with 'flagstat' 
+```{r, engine='bash'}
+samtools flagstat SRR6481086.bam
+```
+
+- 2243 **QC-passed reads**?
+```{r, engine='bash'}
+samtools view -F 0x200 -c SRR6481086.bam
+```
+- 0 **QC-failed reads**?
+```{r, engine='bash'}
+samtools view -f 0x200 -c SRR6481086.bam
+```
+- Why **>1000\*2 reads**? (input was 2K)
+  + Hint: secondary alignment
+```{r, engine='bash'}
+samtools view -f 256 -c SRR6481086.bam
+```
+  + For example:
+```{r, engine='bash'}
+samtools view SRR6481086.bam  | awk '$1=="SRR6481086.10"{print $0}'
+```
+  + Non-secondary alignment
+```{r, engine='bash'}
+samtools view -F 256 -c SRR6481086.bam
+```
+
+- 443 **mapped reads**?
+```{r, engine='bash'}
+samtools view -f1 -F 0x4 -c SRR6481086.bam 
+```
+
+- 1242 **read1** (from the 2243 paired in sequencing)?
+```{r, engine='bash'}
+samtools view -f 0x41 -c SRR6481086.bam 
+```
+- 1001 **read2** (from the 2243 paired in sequencing)?
+```{r, engine='bash'}
+samtools view -f 0x81 -c SRR6481086.bam 
+```
+
+- 0 **properly paired**?
+  + Hint: both 0x1 and 0x2 bits set and 0x4 bit not set
+```{r, engine='bash'}
+samtools view -f 3 -F 0x4 -c SRR6481086.bam 
+```
+
+- 2 **with itself and mate mapped**
+  + Hint: exclude segment unmapped (0x4) **AND** next segment in the template unmapped (0x8)
+```{r, engine='bash'}
+samtools view -f 1 -F 12 -c SRR6481086.bam 
+```
+
+### BED
+- https://genome.ucsc.edu/FAQ/FAQformat#format1
+- BAM to BED (using bedtools)
+```{r, engine='bash'}
+bedtools bamtobed -i SRR6481086.bam | head
+# this is equivalent with the follwoing
+bamToBed -i SRR6481086.bam | head
+```
+
+- Count the mapped reads (in different ways)
+```{r, engine='bash'}
+bamToBed -i SRR6481086.bam | wc -l
+samtools view -f 1 -F 4 SRR6481086.bam  | wc -l
+```
+
+- Compare the 0-based (e.g. BED) and 1-based (e.g. SAM) coordiates
+```{r, engine='bash'}
+samtools view -f 1 -F 4 SRR6481086.bam  | head | cut -f1-4 
+```
+
+- In theory, the aligned region can not go beyond > 75 for SRR6481086 (PE75), but there are:
+```{r, engine='bash'}
+bamToBed -i SRR6481086.bam | awk '$3-$2>75{print $0}'
+```
+
+- Let' look at the BAM file for those cases above
+```{r, engine='bash'}
+samtools view -f 1 -F 4 SRR6481086.bam  | awk '$1=="SRR6481086.72" || $1=="SRR6481086.78" || $1=="SRR6481086.98"{print $0}'
+```
+
+- You may see 'N' in CIGAR line, which mean 'skipped region from the reference'
+- This mean 'intron-spanning' reads in RNA-Seq (i.e. reads containing exon-intron junctions)
+- See [the GATK best practice](https://gatkforums.broadinstitute.org/gatk/discussion/3892/the-gatk-best-practices-for-variant-calling-on-rnaseq-in-full-detail){target="_blank"} with regard to this issue
+- You can 'split' those N-containing CIGAR lines using bedtools
+```{r, engine='bash'}
+bamToBed -split -i SRR6481086.bam | awk '$3-$2>75{print $0}'
+```
