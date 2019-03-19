@@ -107,7 +107,7 @@ zcat Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz | awk '!/^>/{LEN+=length($0)}EN
 zcat Homo_sapiens.GRCh38.dna.chromosome.22.fa.gz | awk 'BEGIN{min=50818468;max=0;start=40000001;end=40000300}!/^>/{LEN+=length($0); if(LEN>=start && LEN-length($0)+1<=end){min=(min>LEN-length($0)+1)?LEN-length($0)+1:min; max=(max>LEN)?max:LEN; SEQ=SEQ$0; print LEN-length($0)+1,LEN,$0,length($0)} }END{print substr(SEQ,start-min+1,end-start+1)}'
 ```
 
-- Compare the result above and the following method (using [the ensembl rest api](https://rest.ensembl.org/documentation/info/sequence_region)){target="_blank"}
+- Compare the result above and the following method (using [the ensembl rest api](https://rest.ensembl.org/documentation/info/sequence_region){target="_blank"})
 ```{r, engine='bash'}
 curl https://rest.ensembl.org/sequence/region/human/22:40000001..40000300:1?content-type=text/plain
 ```
