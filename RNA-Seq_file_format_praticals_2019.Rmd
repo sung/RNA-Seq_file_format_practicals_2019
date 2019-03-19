@@ -33,6 +33,10 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+> "check the [github page](https://github.com/sung/RNA-Seq_file_format_praticals_2019) for this document"
+
+------
+
 ## Aims
 1. To prepare other classes ahead
 2. To gain confidence
@@ -342,3 +346,4 @@ samtools view -f 1 -F 4 SRR6481086.bam  | awk '$1=="SRR6481086.72" || $1=="SRR64
 ```{r, engine='bash'}
 bamToBed -split -i SRR6481086.bam | awk '$3-$2>75{print $0}'
 ```
+- Check out how the use of '-split' option affects reporting [overlap with the genome](https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html#split-reporting-overlaps-with-spliced-alignments-or-blocked-bed-features){target="_blank"}
