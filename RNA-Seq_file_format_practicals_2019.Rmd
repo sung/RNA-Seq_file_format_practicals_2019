@@ -12,8 +12,8 @@ institute: |
   | Department of Obstetrics & Gynaecology
   | University of Cambridge
 output: 
-  html_document:
-  #html_notebook:
+  #html_document:
+  html_notebook:
     highlight: pygments
     toc_float: true
     toc: true
@@ -231,13 +231,12 @@ foo<-rtracklayer::import("Homo_sapiens.GRCh38.95.gtf.gz")
 - http://www.htslib.org/doc/sam.html
 - You can check your bitwise FLAG interactively from [here](https://broadinstitute.github.io/picard/explain-flags.html){target="_blank"}
 
-- Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"}
+- Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"} (you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"})
 ```{r, engine='bash'}
-# you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"}
 sam-dump SRR6481086 | head -n 10
 ```
 
-- However, they truned out to be unaligned
+- However, they turned out to be unaligned
 ```{r, engine='bash', eval=F}
 # DO NOT RUN (takes a while)
 sam-dump SRR6481086 | awk '{print $3}' | sort | uniq -c
