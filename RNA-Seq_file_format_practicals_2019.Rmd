@@ -137,7 +137,7 @@ zcat  SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | echo $((`wc -l`/4))
 zcat SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n4
 ```
 
-- Question: sequencing lenth?
+- Question: sequencing length?
 ```{r, engine='bash'}
 zless SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n 4 | awk 'NR%4==2{print length($0)}'
 ```
@@ -233,8 +233,9 @@ foo<-rtracklayer::import("Homo_sapiens.GRCh38.95.gtf.gz")
 ```
 
 ### SAM (BAM)
+- https://en.wikipedia.org/wiki/SAM_(file_format)
 - http://samtools.github.io/hts-specs/SAMv1.pdf 
-- http://www.htslib.org/doc/sam.html
+
 - You can check your bitwise FLAG interactively from [here](https://broadinstitute.github.io/picard/explain-flags.html){target="_blank"} or [here](https://www.samformat.info/sam-format-flag-single){target="_blank"}
 
 - Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"} (you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"})
