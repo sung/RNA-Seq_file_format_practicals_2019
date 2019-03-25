@@ -135,7 +135,7 @@ zcat  SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | echo $((`wc -l`/4))
 zcat SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n4
 ```
 
-- Question: sequencing lenth?
+- Question: sequencing length?
 ```{r, engine='bash'}
 zless SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n 4 | awk 'NR%4==2{print length($0)}'
 ```
