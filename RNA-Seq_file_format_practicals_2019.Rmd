@@ -84,6 +84,7 @@ https://genome.ucsc.edu/FAQ/FAQformat
 ### FASTA
 - https://en.wikipedia.org/wiki/FASTA_format
 - The letters should follow the [IUPAC codes](https://en.wikipedia.org/wiki/FASTA_format#Sequence_representation){target="_blank"}
+
 - Task 1: download the FASTA file of human chr22 (from [here](https://www.ensembl.org/info/data/ftp/index.html){target="_blank"}) and calculate the size (i.e. length) of the chromosome  
 
 ```{r, echo=F}
@@ -120,6 +121,7 @@ curl https://rest.ensembl.org/sequence/region/human/21:40000001..40000100:1?cont
 
 ### FASTQ
 - https://en.wikipedia.org/wiki/FASTQ_format
+
 - Examples from [Gong *et al.* JCI-I 2018](https://insight.jci.org/articles/view/120723){target="_blank"}
 - Download one of down-sampled (to 1K) FASTQ available from below
 ```{r, engine='bash', eval=F}
@@ -135,11 +137,13 @@ zcat  SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | echo $((`wc -l`/4))
 zcat SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n4
 ```
 
-- Question: sequencing length?
+- Question: sequencing lenth?
 ```{r, engine='bash'}
 zless SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz | head -n 4 | awk 'NR%4==2{print length($0)}'
 ```
  
+- Check the base quality of the read above from the [samformat.info](https://www.samformat.info/base-qualities)
+
 - Check the base quality using [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/){target="_blank"}
 ```{r, engine='bash', eval=F}
 fastqc SLX-9168.D701_D501_1K.C6H3UANXX.s_1.r_1.fq.gz
@@ -176,6 +180,8 @@ zcat SRR6481086_pass_1.fastq.gz | head -n8
 zcat SRR6481086_pass_2.fastq.gz | head -n8
 ```
 
+- Check the base quality from the [samformat.info](https://www.samformat.info/base-qualities)
+
 - Check the base quality using [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/){target="_blank"}
 ```{r, engine='bash', eval=F}
 fastqc SRR6481086_pass_1.fastq.gz SRR6481086_pass_2.fastq.gz
@@ -192,6 +198,7 @@ knitr::include_url("./SRR6481086_pass_2_fastqc.html", height="600px")
 ### GTF (GFF)
 - https://genome.ucsc.edu/FAQ/FAQformat#format3
 - https://www.ensembl.org/info/website/upload/gff.html
+
 - Let's download the Ensembl transcript annotation file
 ```{r, engine='bash', eval=F}
 wget ftp://ftp.ensembl.org/pub/release-95/gtf/homo_sapiens/Homo_sapiens.GRCh38.95.gtf.gz
@@ -227,9 +234,8 @@ foo<-rtracklayer::import("Homo_sapiens.GRCh38.95.gtf.gz")
 
 ### SAM (BAM)
 - http://samtools.github.io/hts-specs/SAMv1.pdf 
-- http://www.htslib.org/doc/samtools.html
 - http://www.htslib.org/doc/sam.html
-- You can check your bitwise FLAG interactively from [here](https://broadinstitute.github.io/picard/explain-flags.html){target="_blank"}
+- You can check your bitwise FLAG interactively from [here](https://broadinstitute.github.io/picard/explain-flags.html){target="_blank"} or [here](https://www.samformat.info/sam-format-flag-single){target="_blank"}
 
 - Let's get the BAM file for [SRR6481086](https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR6481086){target="_blank"} (you may need to install the [sra toolkit](https://www.ncbi.nlm.nih.gov/sra/docs/toolkitsoft/){target="_blank"})
 ```{r, engine='bash'}
@@ -317,7 +323,8 @@ samtools view -f 1 -F 12 -c SRR6481086.bam
 
 ### BED
 - https://genome.ucsc.edu/FAQ/FAQformat#format1
-- Convert BAM format to BED format (using [bedtools](https://bedtools.readthedocs.io/){target="_blank"})
+
+- Let's convert BAM format to BED format (using [bedtools](https://bedtools.readthedocs.io/){target="_blank"})
 ```{r, engine='bash'}
 # I assume bedtools is exported to your $PATH
 bedtools bamtobed -i SRR6481086.bam | head
@@ -354,3 +361,11 @@ samtools view -f 1 -F 4 SRR6481086.bam  | awk '$1=="SRR6481086.72" || $1=="SRR64
 bamToBed -split -i SRR6481086.bam | awk '$3-$2>75{print $0}'
 ```
 - Check out how the use of '-split' option affects reporting [overlap with the genome](https://bedtools.readthedocs.io/en/latest/content/tools/intersect.html#split-reporting-overlaps-with-spliced-alignments-or-blocked-bed-features){target="_blank"}
+
+## Concluding Remarks
+* There is more than one way to do it. ([TMTOWTDI](https://en.wikipedia.org/wiki/There%27s_more_than_one_way_to_do_it))
+* You are not alone.
+    + http://seqanswers.com/
+    + https://www.biostars.org/
+* It takes time.
+* Good luck!
